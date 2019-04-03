@@ -41,13 +41,12 @@ public class MyMessageSender {
         connection.close();
     }
 
-    public void send(String text) throws JMSException {
+    public void send(String message) throws JMSException {
         // create a JMS TextMessage
-        TextMessage textMessage = session.createTextMessage(text);
+        TextMessage textMessage = session.createTextMessage(message);
 
         // send the message to the topic destination
         messageProducer.send(textMessage);
-
     }
 
 

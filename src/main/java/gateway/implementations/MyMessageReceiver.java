@@ -11,6 +11,7 @@ import javax.jms.Topic;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.w3c.dom.Text;
 
 public class MyMessageReceiver {
 
@@ -42,24 +43,7 @@ public class MyMessageReceiver {
         connection.close();
     }
 
-    public String receive() throws JMSException {
-
-        String returnedMessage = null;
-
-        // read a message from the topic destination
-        Message message = messageConsumer.receive();
-
-        // check if a message was received
-        if (message != null) {
-            // cast the message to the correct type
-            TextMessage textMessage = (TextMessage) message;
-
-            // retrieve the message content
-            String text = textMessage.getText();
-
-            returnedMessage = text;
-        }
-
-        return returnedMessage;
+    public TextMessage receive() throws JMSException {
+        return (TextMessage) this.messageConsumer.receive(5);
     }
 }
