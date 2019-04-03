@@ -1,3 +1,7 @@
+package gateway.implementations;
+
+import java.util.Scanner;
+
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -45,4 +49,6 @@ public class MyMessageSender {
         messageProducer.send(textMessage);
 
     }
+
+
 }

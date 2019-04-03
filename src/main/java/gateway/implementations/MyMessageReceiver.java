@@ -1,3 +1,5 @@
+package gateway.implementations;
+
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
