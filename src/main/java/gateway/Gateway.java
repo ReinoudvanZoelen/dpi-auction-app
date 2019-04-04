@@ -1,41 +1,55 @@
 package gateway;
 
-import gateway.implementations.CustomMessageReceiver;
-import gateway.implementations.CustomMessageSender;
+import org.apache.activemq.command.ActiveMQTextMessage;
+import service.MQConnection;
 
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
+import javax.jms.*;
+import javax.naming.NamingException;
+import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Gateway {
-    private CustomMessageSender sender;
-    private CustomMessageReceiver receiver;
 
-    public Gateway(String clientId, String topicName){
+    private MQConnection mqConnection;
+    private MessageProducer producer;
+    private MessageConsumer consumer;
+    private static ArrayList<ActiveMQTextMessage> receivedMessages;
+
+    public Gateway(String name) {
         try {
-            this.sender = new CustomMessageSender(clientId, topicName);
-            this.receiver = new CustomMessageReceiver(clientId, topicName);
-
-            this.sender.send("Client " + clientId + " subscribed to topic " + topicName);
+            this.mqConnection = new MQConnection(name);
+            this.producer = this.mqConnection.getSession().createProducer((Destination) mqConnection.getJndiContext().lookup(name));
+            this.consumer = this.mqConnection.getSession().createConsumer((Destination) mqConnection.getJndiContext().lookup(name));
+            this.mqConnection.start();
+        } catch (NamingException e) {
+            e.printStackTrace();
         } catch (JMSException e) {
             e.printStackTrace();
         }
     }
 
-    public void GatewaySend(String message) {
+    public void sendMessage(Serializable object) {
+        ObjectMessage msg = null;
         try {
-            this.sender.send(message);
+            msg = this.mqConnection.getSession().createObjectMessage(object);
+            producer.send(msg);
         } catch (JMSException e) {
             e.printStackTrace();
         }
     }
 
-    public TextMessage GatewayReceive()  {
+    public MessageConsumer getConsumer() {
+        return this.consumer;
+    }
+
+    public ActiveMQTextMessage receiveMessage(long timeout) {
         try {
-            return this.receiver.receive();
+            ActiveMQTextMessage message = (ActiveMQTextMessage) this.consumer.receive(timeout);
+            this.receivedMessages.add(message);
+            return message;
         } catch (JMSException e) {
             e.printStackTrace();
         }
         return null;
     }
-
 }
