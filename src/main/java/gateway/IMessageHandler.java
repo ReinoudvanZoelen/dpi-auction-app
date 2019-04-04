@@ -5,5 +5,5 @@ import javax.jms.TextMessage;
 
 public interface IMessageHandler {
     void sendMessage(String message) throws JMSException;
-    TextMessage receiveMessasge() throws JMSException;
+    TextMessage receiveMessage() throws JMSException;
 }

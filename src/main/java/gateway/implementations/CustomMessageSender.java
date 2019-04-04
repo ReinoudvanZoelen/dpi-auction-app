@@ -13,13 +13,13 @@ import javax.jms.Topic;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
-public class MyMessageSender {
+public class CustomMessageSender {
 
     private Connection connection;
     private Session session;
     private MessageProducer messageProducer;
 
-    public MyMessageSender(String clientId, String topicName) throws JMSException {
+    public CustomMessageSender(String clientId, String topicName) throws JMSException {
         // create a Connection Factory
         ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_BROKER_URL);
 

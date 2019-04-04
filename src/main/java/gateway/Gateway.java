@@ -1,19 +1,19 @@
 package gateway;
 
-import gateway.implementations.MyMessageReceiver;
-import gateway.implementations.MyMessageSender;
+import gateway.implementations.CustomMessageReceiver;
+import gateway.implementations.CustomMessageSender;
 
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 
-public abstract class Gateway {
-    private MyMessageSender sender;
-    private MyMessageReceiver receiver;
+public class Gateway {
+    private CustomMessageSender sender;
+    private CustomMessageReceiver receiver;
 
     public Gateway(String clientId, String topicName){
         try {
-            this.sender = new MyMessageSender(clientId, topicName);
-            this.receiver = new MyMessageReceiver(clientId, topicName);
+            this.sender = new CustomMessageSender(clientId, topicName);
+            this.receiver = new CustomMessageReceiver(clientId, topicName);
 
             this.sender.send("Client " + clientId + " subscribed to topic " + topicName);
         } catch (JMSException e) {
@@ -21,12 +21,21 @@ public abstract class Gateway {
         }
     }
 
-    public void GatewaySend(String message) throws JMSException {
-        this.sender.send(message);
+    public void GatewaySend(String message) {
+        try {
+            this.sender.send(message);
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
     }
 
-    public TextMessage GatewayReceive() throws JMSException {
-        return this.receiver.receive();
+    public TextMessage GatewayReceive()  {
+        try {
+            return this.receiver.receive();
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

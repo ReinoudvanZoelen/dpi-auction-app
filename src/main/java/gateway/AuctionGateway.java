@@ -5,25 +5,23 @@ import models.Item;
 
 import java.util.ArrayList;
 
-public class AuctionManagementGateway {
+public class AuctionGateway {
     private Gateway auctionManagerGateway;
     private Gateway auctionGateway;
 
-    private boolean isAuctionCurrentlyActive = false;
     private Item currentItem;
     private ArrayList<Item> auctionItemBacklog = new ArrayList<>();
 
-    public AuctionManagementGateway(String clientId) {
+    public AuctionGateway(String clientId) {
         auctionManagerGateway = new Gateway(clientId, "AuctionManagement");
         auctionGateway = new Gateway(clientId, "Auction");
     }
 
     public void putUpForAuction(Item item) {
-        if (isAuctionCurrentlyActive) {
-            this.auctionManagerGateway.GatewaySend("An currentItem is already being auctioned off. The currentItem \"" + item.name + "\" has added to the queue");
+        if (currentItem == null) {
+            this.auctionManagerGateway.GatewaySend("An item is already being auctioned off. The item \"" + item.name + "\" has added to the queue");
             this.auctionItemBacklog.add(item);
         } else {
-            isAuctionCurrentlyActive = true;
             this.auctionGateway.GatewaySend("A new currentItem is up for sale. Item name: " + item.name);
         }
     }
@@ -44,6 +42,14 @@ public class AuctionManagementGateway {
     private void notifyCompletedAuction(Bid bid) {
         this.currentItem.winningBid = bid;
         this.auctionGateway.GatewaySend("Congratulations " + currentItem.seller.name + ", your currentItem \"" + currentItem.name + "\" has been sold to " + currentItem.winningBid.buyer.name + " for " + currentItem.winningBid.buyingPrice);
+
+        currentItem = null;
+
+        if (auctionItemBacklog.size() > 0) {
+            Item item = auctionItemBacklog.get(0);
+            auctionItemBacklog.remove(0);
+            putUpForAuction(item);
+        }
     }
 
     public Item getCurrentItem() {
