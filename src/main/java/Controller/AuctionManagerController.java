@@ -3,16 +3,12 @@ package Controller;
 
 import com.google.gson.Gson;
 import gateway.Gateway;
-import gateway.MessageReceiverGateway;
-import gateway.MessageSenderGateway;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import models.Bid;
 import models.Item;
 
-import javax.jms.JMSException;
-import javax.jms.Message;
 import java.awt.*;
 import java.net.URL;
 import java.util.ArrayList;
@@ -37,7 +33,7 @@ public class AuctionManagerController implements Initializable {
 
     // LotSubmitter: For submitting a lot for the AuctionManager to consume
     private Gateway lotSubmitterGateway = new Gateway("LotSubmitter");
-     //endregion
+    //endregion
 
     private List<Item> items = new ArrayList<Item>();
     private List<Bid> bids = new ArrayList<Bid>();

@@ -1,5 +1,8 @@
 package listeners;
 
+import org.apache.activemq.command.ActiveMQObjectMessage;
+import org.apache.activemq.command.ActiveMQTextMessage;
+
 import javax.jms.Message;
 
 public class MessageListener implements javax.jms.MessageListener {
@@ -12,7 +15,7 @@ public class MessageListener implements javax.jms.MessageListener {
 
     @Override
     public void onMessage(Message message) {
-        this.messageHandler.onMessageReceived(message);
+        this.messageHandler.onMessageReceived((ActiveMQTextMessage)message);
     }
 }
 

@@ -17,7 +17,6 @@ import models.User;
 import org.apache.activemq.command.ActiveMQTextMessage;
 
 import javax.jms.JMSException;
-import javax.jms.Message;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -69,42 +68,53 @@ public class BidderController implements Initializable, IMessageHandler {
         } catch (JMSException e) {
             e.printStackTrace();
         }
+
+        this.onCreateOfferClicked();
     }
 
     public void onCreateOfferClicked() {
-        // TODO !!!
         User u = new User("Reinoud");
         Bid bid = new Bid(u, 100);
-        this.biddingGateway.sendMessage(gson.toJson(bid));
-        System.out.println("Created offer " + bid);
+        this.biddingGateway.sendMessage(bid);
     }
 
     public void onRefreshOffersClick() {
-        System.out.println("Refreshing offers");
-        Bid bid = new Bid(new User("Reinoud"), 100);
-        this.biddingGateway.sendMessage(bid);
+    }
 
-        System.out.println(bid);
-        ActiveMQTextMessage message = this.biddingGateway.receiveMessage(5);
-        System.out.println(message);
+    @Override
+    public void onMessageReceived(ActiveMQTextMessage message) {
+        try {
+            String json = message.getText();
+            System.out.println(json);
 
-        if (message != null) {
-            Bid biddie = null;
-            try {
-                biddie = gson.fromJson(message.getText(), Bid.class);
-            } catch (JMSException e) {
-                e.printStackTrace();
+            Bid bid = gson.fromJson(json, Bid.class);
+            Item item = gson.fromJson(json, Item.class);
+            User user = gson.fromJson(json, User.class);
+
+            if (bid != null) {
+                onBidReceived(bid);
+            } else if (item != null) {
+                onItemReceived(item);
+            } else if (user != null) {
+                onUserReceived(user);
+            } else {
+                System.out.println("HUH?!");
             }
-
-            System.out.println(bid);
-            System.out.println(biddie);
-
-            this.offers.add(bid);
-            this.offers.add(biddie);
+        } catch (JMSException e) {
+            e.printStackTrace();
         }
     }
 
-    public void onMessageReceived(Message message) {
-        System.out.println(message);
+    private void onBidReceived(Bid bid) {
+        System.out.println("RECEIVED: " + bid);
     }
+
+    private void onItemReceived(Item item) {
+        System.out.println("RECEIVED: " + item);
+    }
+
+    private void onUserReceived(User user) {
+        System.out.println("RECEIVED: " + user);
+    }
+
 }

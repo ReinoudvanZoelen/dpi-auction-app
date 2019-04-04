@@ -1,5 +1,6 @@
 package gateway;
 
+import com.google.gson.Gson;
 import org.apache.activemq.command.ActiveMQTextMessage;
 import service.MQConnection;
 
@@ -10,10 +11,11 @@ import java.util.ArrayList;
 
 public class Gateway {
 
+    private static ArrayList<ActiveMQTextMessage> receivedMessages;
     private MQConnection mqConnection;
     private MessageProducer producer;
     private MessageConsumer consumer;
-    private static ArrayList<ActiveMQTextMessage> receivedMessages;
+    private Gson gson = new Gson();
 
     public Gateway(String name) {
         try {
@@ -29,10 +31,10 @@ public class Gateway {
     }
 
     public void sendMessage(Serializable object) {
-        ObjectMessage msg = null;
+        TextMessage message = null;
         try {
-            msg = this.mqConnection.getSession().createObjectMessage(object);
-            producer.send(msg);
+            message = this.mqConnection.getSession().createTextMessage(gson.toJson(object));
+            producer.send(message);
         } catch (JMSException e) {
             e.printStackTrace();
         }
@@ -42,14 +44,14 @@ public class Gateway {
         return this.consumer;
     }
 
-    public ActiveMQTextMessage receiveMessage(long timeout) {
-        try {
-            ActiveMQTextMessage message = (ActiveMQTextMessage) this.consumer.receive(timeout);
-            this.receivedMessages.add(message);
-            return message;
-        } catch (JMSException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+    //    public ActiveMQTextMessage receiveMessage(long timeout) {
+//        try {
+//            ActiveMQTextMessage message = (ActiveMQTextMessage) this.consumer.receive(timeout);
+//            this.receivedMessages.add(message);
+//            return message;
+//        } catch (JMSException e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
 }
