@@ -13,12 +13,12 @@ import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.w3c.dom.Text;
 
-public class MyMessageReceiver {
+public class CustomMessageReceiver {
 
     private Connection connection;
     private MessageConsumer messageConsumer;
 
-    public MyMessageReceiver(String clientId, String topicName) throws JMSException {
+    public CustomMessageReceiver(String clientId, String topicName) throws JMSException {
         // create a Connection Factory
         ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_BROKER_URL);
 
