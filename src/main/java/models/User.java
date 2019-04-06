@@ -17,4 +17,9 @@ public class User implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
+
+    @Override
+    public String toString() {
+        return "User{ name='" + name + "' }";
+    }
 }

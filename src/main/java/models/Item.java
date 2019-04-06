@@ -14,6 +14,11 @@ public class Item implements Serializable {
         this.autoSellPrice = autoSellPrice;
     }
 
+    @Override
+    public String toString() {
+        return "Item "+ name + ", sold by " + seller.name;
+    }
+
     public String getName() {
         return name;
     }

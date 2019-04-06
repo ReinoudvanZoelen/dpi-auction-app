@@ -29,9 +29,6 @@ public class Bid implements Serializable {
 
     @Override
     public String toString() {
-        return "Bid{" +
-                "buyer=" + buyer +
-                ", buyingPrice=" + buyingPrice +
-                '}';
+        return "Bid by "+ buyer.name + ", value of " + buyingPrice;
     }
 }
