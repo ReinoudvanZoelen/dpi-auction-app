@@ -16,18 +16,15 @@
                         <Button fx:id="buttonCreateOffer" layoutX="292.0" layoutY="51.0" mnemonicParsing="false"
                                 onAction="#onCreateOfferClicked" text="Create offer"/>
                         <Label fx:id="labelCurrentLotName" layoutX="111.0" layoutY="19.0" text="currentlotname"/>
+                        <Label layoutX="14.0" layoutY="96.0" text="Offers"/>
                         <ListView fx:id="listviewOfferOverview" layoutX="13.0" layoutY="113.0" prefHeight="148.0"
                                   prefWidth="559.0"/>
-                        <Label layoutX="14.0" layoutY="96.0" text="Offers"/>
-                        <Button fx:id="buttonRefreshOffers" layoutX="423.0" layoutY="236.0" mnemonicParsing="false"
-                                onAction="#onRefreshOffersClick" prefHeight="25.0" prefWidth="149.0"
-                                text="Refresh offers"/>
                     </children>
                 </Pane>
                 <Label layoutX="162.0" layoutY="300.0" text="Create a new lot"/>
-                <TextField fx:id="textfieldNameInput" layoutX="212.0" layoutY="328.0" prefHeight="25.0"
+                <TextField fx:id="textfieldLotnameInput" layoutX="212.0" layoutY="328.0" prefHeight="25.0"
                            prefWidth="226.0"/>
-                <Button fx:id="buttonCreateLot" layoutX="387.0" layoutY="296.0" mnemonicParsing="false" text="Create"/>
+                <Button fx:id="buttonCreateLot" onAction="#onCreateLotClicked" layoutX="387.0" layoutY="296.0" mnemonicParsing="false" text="Create"/>
                 <Label layoutX="162.0" layoutY="332.0" text="Name"/>
             </children>
         </Pane>

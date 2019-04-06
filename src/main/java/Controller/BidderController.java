@@ -7,6 +7,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import listeners.IMessageHandler;
@@ -25,6 +26,8 @@ public class BidderController implements Initializable, IMessageHandler {
     private Gson gson = new Gson();
 
     @FXML
+    private Label labelCurrentLotName;
+    @FXML
     private Button buttonCreateOffer;
     @FXML
     private Button buttonRefreshOffers;
@@ -33,12 +36,9 @@ public class BidderController implements Initializable, IMessageHandler {
     @FXML
     private TextField textfieldOfferInput;
     @FXML
-    private TextField textfieldNameInput;
+    private TextField textfieldLotnameInput;
     @FXML
     private ListView<Bid> listviewOfferOverview;
-
-    //region Channels
-    // Bidding: For placing a bid on the current lot
 
     //region Channels
     // Bidding: For placing a bid on the current lot
@@ -56,6 +56,7 @@ public class BidderController implements Initializable, IMessageHandler {
     //endregion
 
     private ObservableList<Bid> offers = FXCollections.observableArrayList();
+    private Item currentItem;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -68,19 +69,24 @@ public class BidderController implements Initializable, IMessageHandler {
         } catch (JMSException e) {
             e.printStackTrace();
         }
-
-        this.onCreateOfferClicked();
     }
 
+    //region Button handlers
     public void onCreateOfferClicked() {
-        User u = new User("Reinoud");
-        Bid bid = new Bid(u, 100);
-        this.biddingGateway.sendMessage(bid);
+
     }
 
-    public void onRefreshOffersClick() {
+    public void onCreateLotClicked() {
+        String description = this.textfieldLotnameInput.getText();
+        if (description.length() > 0) {
+            User user = new User("Reinoud");
+            Item item = new Item(description, user, 100);
+            this.lotSubmitterGateway.sendMessage(item);
+        }
     }
+    //endregion
 
+    //region Message handling
     @Override
     public void onMessageReceived(ActiveMQTextMessage message) {
         try {
@@ -91,14 +97,16 @@ public class BidderController implements Initializable, IMessageHandler {
             Item item = gson.fromJson(json, Item.class);
             User user = gson.fromJson(json, User.class);
 
+            System.out.println(bid);
+            System.out.println(item);
+            System.out.println(user);
+
             if (bid != null) {
                 onBidReceived(bid);
-            } else if (item != null) {
+            } if (item != null) {
                 onItemReceived(item);
-            } else if (user != null) {
+            } if (user != null) {
                 onUserReceived(user);
-            } else {
-                System.out.println("HUH?!");
             }
         } catch (JMSException e) {
             e.printStackTrace();
@@ -107,14 +115,17 @@ public class BidderController implements Initializable, IMessageHandler {
 
     private void onBidReceived(Bid bid) {
         System.out.println("RECEIVED: " + bid);
+        this.offers.add(bid);
     }
 
     private void onItemReceived(Item item) {
         System.out.println("RECEIVED: " + item);
+        this.currentItem = item;
+        this.labelCurrentLotName.setText(item.name);
     }
 
     private void onUserReceived(User user) {
         System.out.println("RECEIVED: " + user);
     }
-
+    //endregion
 }
