@@ -1,30 +1,38 @@
 package service;
 
+import org.apache.activemq.ActiveMQConnection;
+import org.apache.activemq.ActiveMQConnectionFactory;
+
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Session;
+import javax.jms.Topic;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import java.util.Properties;
 
 public class MQConnection {
 
     private javax.jms.Connection connection;
+    private Session session;
+    private Topic topic;
     private Context jndiContext;
 
-    public MQConnection(String queue) throws NamingException, JMSException {
-        Properties props = new Properties();
-        props.setProperty(Context.INITIAL_CONTEXT_FACTORY, "org.apache.activemq.jndi.ActiveMQInitialContextFactory");
-        props.setProperty(Context.PROVIDER_URL, "tcp://localhost:61616");
-        props.put(("queue." + queue), queue);
-        this.jndiContext = new InitialContext(props);
-        ConnectionFactory connectionFactory = (ConnectionFactory) jndiContext.lookup("ConnectionFactory");
-        this.connection = connectionFactory.createConnection();
+    public MQConnection(String clientId, String topicName) throws NamingException, JMSException {
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_BROKER_URL);
+        connectionFactory.setTrustAllPackages(true);
+        connection = connectionFactory.createConnection();
+        connection.setClientID(clientId);
+        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        this.topic = session.createTopic(topicName);
     }
 
     public Session getSession() throws JMSException {
-        return this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        return this.session;
+        //return this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+    }
+
+    public Topic getTopic(){
+        return this.topic;
     }
 
     public Context getJndiContext() {

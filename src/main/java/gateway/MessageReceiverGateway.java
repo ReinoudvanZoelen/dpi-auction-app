@@ -12,10 +12,10 @@ public class MessageReceiverGateway {
     private MQConnection mqConnection;
     private MessageConsumer consumer;
 
-    public MessageReceiverGateway(String name) {
+    public MessageReceiverGateway(String clientId, String topicName) {
         try {
-            this.mqConnection = new MQConnection(name);
-            this.consumer = this.mqConnection.getSession().createConsumer((Destination) mqConnection.getJndiContext().lookup(name));
+            this.mqConnection = new MQConnection(clientId, topicName);
+            this.consumer = this.mqConnection.getSession().createConsumer((Destination) mqConnection.getJndiContext().lookup(topicName));
             this.mqConnection.start();
         } catch (NamingException e) {
             e.printStackTrace();

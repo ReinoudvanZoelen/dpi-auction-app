@@ -1,6 +1,5 @@
 package Controller;
 
-import com.google.gson.Gson;
 import gateway.Gateway;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,15 +14,13 @@ import listeners.MessageListener;
 import models.Bid;
 import models.Item;
 import models.User;
-import org.apache.activemq.command.ActiveMQTextMessage;
+import org.apache.activemq.command.ActiveMQObjectMessage;
 
 import javax.jms.JMSException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
 public class BidderController implements Initializable, IMessageHandler {
-
-    private Gson gson = new Gson();
 
     @FXML
     private Label labelCurrentLotName;
@@ -73,7 +70,9 @@ public class BidderController implements Initializable, IMessageHandler {
 
     //region Button handlers
     public void onCreateOfferClicked() {
-
+        User user = new User("Reinoud");
+        Bid bid = new Bid(user, 100);
+        this.biddingGateway.sendMessage(bid);
     }
 
     public void onCreateLotClicked() {
@@ -88,44 +87,38 @@ public class BidderController implements Initializable, IMessageHandler {
 
     //region Message handling
     @Override
-    public void onMessageReceived(ActiveMQTextMessage message) {
+    public void onMessageReceived(ActiveMQObjectMessage message, String destination) {
+
         try {
-            String json = message.getText();
-            System.out.println(json);
-
-            Bid bid = gson.fromJson(json, Bid.class);
-            Item item = gson.fromJson(json, Item.class);
-            User user = gson.fromJson(json, User.class);
-
-            System.out.println(bid);
-            System.out.println(item);
-            System.out.println(user);
-
-            if (bid != null) {
-                onBidReceived(bid);
-            } if (item != null) {
-                onItemReceived(item);
-            } if (user != null) {
-                onUserReceived(user);
+            switch (destination) {
+                case "Bidding":
+                    Bid bid = (Bid) message.getObject();
+                    this.onBidMade(bid);
+                    break;
+                case "LotPublisher":
+                    Item item = (Item) message.getObject();
+                    this.onLotPublished(item);
+                    break;
+                //case "LotSubmitter":
+                //    // No actions are needed from the Bidder when a new lot is submitted
+                //    break;
+                default:
+                    System.out.println("no match");
             }
         } catch (JMSException e) {
             e.printStackTrace();
         }
     }
 
-    private void onBidReceived(Bid bid) {
-        System.out.println("RECEIVED: " + bid);
+    private void onBidMade(Bid bid) {
+        System.out.println(bid.toString());
         this.offers.add(bid);
     }
 
-    private void onItemReceived(Item item) {
-        System.out.println("RECEIVED: " + item);
+    private void onLotPublished(Item item) {
+        System.out.println("RECEIVED: " + item.toString());
         this.currentItem = item;
         this.labelCurrentLotName.setText(item.name);
-    }
-
-    private void onUserReceived(User user) {
-        System.out.println("RECEIVED: " + user);
     }
     //endregion
 }

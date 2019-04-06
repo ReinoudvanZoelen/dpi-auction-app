@@ -10,10 +10,10 @@ public class MessageSenderGateway {
     private MQConnection mqConnection;
     private MessageProducer producer;
 
-    public MessageSenderGateway(String name) {
+    public MessageSenderGateway(String clientId, String topicName) {
         try {
-            this.mqConnection = new MQConnection(name);
-            this.producer = this.mqConnection.getSession().createProducer((Destination) mqConnection.getJndiContext().lookup(name));
+            this.mqConnection = new MQConnection(clientId, topicName);
+            this.producer = this.mqConnection.getSession().createProducer((Destination) mqConnection.getJndiContext().lookup(topicName));
         } catch (NamingException e) {
             e.printStackTrace();
         } catch (JMSException e) {

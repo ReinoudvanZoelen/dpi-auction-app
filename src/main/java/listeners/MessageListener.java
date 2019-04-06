@@ -15,7 +15,10 @@ public class MessageListener implements javax.jms.MessageListener {
 
     @Override
     public void onMessage(Message message) {
-        this.messageHandler.onMessageReceived((ActiveMQTextMessage)message);
+        System.out.println(message);
+        ActiveMQObjectMessage objectMessage = (ActiveMQObjectMessage) message;
+        String physicalName = objectMessage.getDestination().getPhysicalName();
+        this.messageHandler.onMessageReceived(objectMessage, physicalName);
     }
 }
 

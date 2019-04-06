@@ -13,7 +13,7 @@
                   prefWidth="280.0"/>
         <Label layoutX="14.0" layoutY="168.0" text="Pending lots"/>
         <Label layoutX="306.0" layoutY="168.0" text="Offers"/>
-        <TextArea id="textareaCurrentLot" layoutX="306.0" layoutY="31.0" prefHeight="120.0" prefWidth="280.0"/>
+        <TextArea fx:id="textAreaCurrentLot" id="currentLot" layoutX="306.0" layoutY="31.0" prefHeight="120.0" prefWidth="280.0"/>
         <Label layoutX="308.0" layoutY="14.0" text="Current lot"/>
     </children>
 </AnchorPane>

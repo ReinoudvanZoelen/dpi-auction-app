@@ -1,8 +1,8 @@
 package Controller;
 
-
-import com.google.gson.Gson;
 import gateway.Gateway;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
@@ -11,7 +11,7 @@ import listeners.MessageListener;
 import models.Bid;
 import models.Item;
 import models.User;
-import org.apache.activemq.command.ActiveMQTextMessage;
+import org.apache.activemq.command.ActiveMQObjectMessage;
 
 import javax.jms.JMSException;
 import java.awt.*;
@@ -28,7 +28,7 @@ public class AuctionManagerController implements Initializable, IMessageHandler 
     public ListView listviewBiddings;
     @FXML
     public ListView listviewPendingLots;
-    private Gson gson = new Gson();
+
     //region Channels
     // Bidding: For placing a bid on the current lot
     private Gateway biddingGateway = new Gateway("Bidding");
@@ -41,15 +41,17 @@ public class AuctionManagerController implements Initializable, IMessageHandler 
 
     // Listener
     private MessageListener listener = new MessageListener(this);
-
     //endregion
 
     private Item currentItem;
-    private List<Item> items = new ArrayList<Item>();
-    private List<Bid> bids = new ArrayList<Bid>();
+    private ObservableList<Item> pendingLots = FXCollections.observableArrayList();
+    private ObservableList<Bid> bids = FXCollections.observableArrayList();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        this.listviewPendingLots.setItems(pendingLots);
+        this.listviewBiddings.setItems(bids);
+
         try {
             this.biddingGateway.getConsumer().setMessageListener(this.listener);
             this.lotPublisherGateway.getConsumer().setMessageListener(this.listener);
@@ -61,39 +63,35 @@ public class AuctionManagerController implements Initializable, IMessageHandler 
 
     //region Message handling
     @Override
-    public void onMessageReceived(ActiveMQTextMessage message) {
+    public void onMessageReceived(ActiveMQObjectMessage message, String destination) {
         try {
-            String json = message.getText();
-            System.out.println(json);
-
-            Bid bid = gson.fromJson(json, Bid.class);
-            Item item = gson.fromJson(json, Item.class);
-            User user = gson.fromJson(json, User.class);
-
-            System.out.println(bid);
-            System.out.println(item);
-            System.out.println(user);
-
-            if (bid != null) {
-                onBidReceived(bid);
-            } if (item != null) {
-                onItemReceived(item);
-            } if (user != null) {
-                onUserReceived(user);
+            switch (destination) {
+                case "Bidding":
+                    Bid bid = (Bid) message.getObject();
+                    this.onBidMade(bid);
+                    break;
+                //case "LotPublisher":
+                //    // No actions are needed from the Bidder when a new lot is submitted
+                //    break;
+                case "LotSubmitter":
+                    Item lot = (Item) message.getObject();
+                    this.onLotSubmitted(lot);
+                    break;
+                default:
+                    System.out.println("no match on destionation: " + destination);
             }
         } catch (JMSException e) {
             e.printStackTrace();
         }
     }
 
-    private void onBidReceived(Bid bid) {
+    private void onBidMade(Bid bid) {
         System.out.println("RECEIVED: " + bid);
     }
 
-    private void onItemReceived(Item item) {
-        System.out.println("RECEIVED: " + item);
-        this.currentItem = item;
-        this.currentItem.name = this.currentItem.name + " being sold!";
+    private void onLotSubmitted(Item item) {
+        System.out.println("RECEIVED: " + item.getName());
+        this.pendingLots.add(item);
         this.lotPublisherGateway.sendMessage(this.currentItem);
     }
 
