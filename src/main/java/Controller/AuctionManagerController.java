@@ -86,17 +86,31 @@ public class AuctionManagerController implements Initializable, IMessageHandler 
     }
 
     private void onBidMade(Bid bid) {
-        System.out.println("RECEIVED: " + bid);
+        System.out.println("A new bid has been made: " + bid);
+        this.bids.add(bid);
+        if(this.currentItem.winningBid == null){
+            // If no bid has been placed so far
+            this.currentItem.winningBid = bid;
+        } else {
+            // If a bid has been placed, compare prices
+            if(bid.buyingPrice > this.currentItem.winningBid.buyingPrice){
+                this.currentItem.winningBid = bid;
+                if(this.currentItem.autoSellPrice <= bid.buyingPrice){
+                    // Item has been sold!
+                }
+            }
+        }
     }
 
     private void onLotSubmitted(Item item) {
-        System.out.println("RECEIVED: " + item.getName());
-        this.pendingLots.add(item);
-        this.lotPublisherGateway.sendMessage(this.currentItem);
-    }
-
-    private void onUserReceived(User user) {
-        System.out.println("RECEIVED: " + user);
+        System.out.println("A new item has been submitted: " + item.getName());
+        if(currentItem == null){
+            this.currentItem = item;
+            this.textareaCurrentLot.setText(item.toString());
+            this.lotPublisherGateway.sendMessage(item);
+        } else {
+            this.pendingLots.add(item);
+        }
     }
     //endregion
 }

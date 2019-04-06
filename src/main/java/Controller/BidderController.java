@@ -27,8 +27,6 @@ public class BidderController implements Initializable, IMessageHandler {
     @FXML
     private Button buttonCreateOffer;
     @FXML
-    private Button buttonRefreshOffers;
-    @FXML
     private Button buttonCreateLot;
     @FXML
     private TextField textfieldOfferInput;
@@ -49,7 +47,10 @@ public class BidderController implements Initializable, IMessageHandler {
 
     // Listener
     private MessageListener listener = new MessageListener(this);
+    //endregion
 
+    //region User info
+    public String username;
     //endregion
 
     private ObservableList<Bid> offers = FXCollections.observableArrayList();
@@ -70,15 +71,20 @@ public class BidderController implements Initializable, IMessageHandler {
 
     //region Button handlers
     public void onCreateOfferClicked() {
-        User user = new User("Reinoud");
-        Bid bid = new Bid(user, 100);
-        this.biddingGateway.sendMessage(bid);
+        String textBidValue = this.textfieldOfferInput.getText();
+        int bidValue = Integer.parseInt(textBidValue);
+        if (bidValue > 0) {
+            User user = new User(this.username);
+            Bid bid = new Bid(user, bidValue);
+            this.biddingGateway.sendMessage(bid);
+        }
+
     }
 
     public void onCreateLotClicked() {
         String description = this.textfieldLotnameInput.getText();
         if (description.length() > 0) {
-            User user = new User("Reinoud");
+            User user = new User(this.username);
             Item item = new Item(description, user, 100);
             this.lotSubmitterGateway.sendMessage(item);
         }
@@ -95,15 +101,15 @@ public class BidderController implements Initializable, IMessageHandler {
                     Bid bid = (Bid) message.getObject();
                     this.onBidMade(bid);
                     break;
-                case "LotPublisher":
+                case "LotSubmitter":
                     Item item = (Item) message.getObject();
-                    this.onLotPublished(item);
+                    this.onLotSubmitted(item);
                     break;
-                //case "LotSubmitter":
+                //case "LotPublisher":
                 //    // No actions are needed from the Bidder when a new lot is submitted
                 //    break;
                 default:
-                    System.out.println("no match");
+                    System.out.println("no match on destionation: " + destination);
             }
         } catch (JMSException e) {
             e.printStackTrace();
@@ -111,14 +117,15 @@ public class BidderController implements Initializable, IMessageHandler {
     }
 
     private void onBidMade(Bid bid) {
+        System.out.println("A new bid has been made: " + bid);
         System.out.println(bid.toString());
         this.offers.add(bid);
     }
 
-    private void onLotPublished(Item item) {
-        System.out.println("RECEIVED: " + item.toString());
+    private void onLotSubmitted(Item item) {
+        System.out.println("A new item has been put of for offer: " + item.getName());
         this.currentItem = item;
-        this.labelCurrentLotName.setText(item.name);
+        this.labelCurrentLotName.setText(item.getName());
     }
     //endregion
 }
