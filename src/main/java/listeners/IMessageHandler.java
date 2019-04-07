@@ -1,9 +1,9 @@
 package listeners;
 
 import org.apache.activemq.command.ActiveMQObjectMessage;
-
-import javax.jms.Message;
+import org.apache.activemq.command.ActiveMQTextMessage;
 
 public interface IMessageHandler {
-    void onMessageReceived(ActiveMQObjectMessage message, String destination);
+    void onTextMessageReceived(ActiveMQTextMessage message);
+    void onObjectMessageReceived(ActiveMQObjectMessage message);
 }

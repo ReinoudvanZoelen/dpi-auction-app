@@ -3,7 +3,6 @@ package service;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
-import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Session;
 import javax.jms.Topic;
@@ -28,10 +27,9 @@ public class MQConnection {
 
     public Session getSession() throws JMSException {
         return this.session;
-        //return this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
     }
 
-    public Topic getTopic(){
+    public Topic getTopic() {
         return this.topic;
     }
 

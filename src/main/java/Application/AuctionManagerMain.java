@@ -16,7 +16,7 @@ public class AuctionManagerMain extends Application {
     public void start(Stage primaryStage) throws Exception {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/AuctionManagerUI.fxml"));
         Parent root = fxmlLoader.load();
-        primaryStage.setTitle("Auction - Reinoud van Zoelen");
+        primaryStage.setTitle("Auction - Administration console");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }

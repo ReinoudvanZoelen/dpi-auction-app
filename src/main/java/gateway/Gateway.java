@@ -29,11 +29,19 @@ public class Gateway {
         }
     }
 
-    public void sendMessage(Serializable object) {
-        ObjectMessage message = null;
+    public void sendTextMessage(String text) {
         try {
-            message = this.mqConnection.getSession().createObjectMessage(object);
-            producer.send(message);
+            TextMessage message = this.mqConnection.getSession().createTextMessage(text);
+            this.producer.send(message);
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendObjectMessage(Serializable object){
+        try {
+            ObjectMessage message = this.mqConnection.getSession().createObjectMessage(object);
+            this.producer.send(message);
         } catch (JMSException e) {
             e.printStackTrace();
         }

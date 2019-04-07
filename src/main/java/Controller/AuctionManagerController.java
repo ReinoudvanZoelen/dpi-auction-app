@@ -6,38 +6,42 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import listeners.IMessageHandler;
 import listeners.MessageListener;
 import models.Bid;
 import models.Item;
 import models.User;
 import org.apache.activemq.command.ActiveMQObjectMessage;
+import org.apache.activemq.command.ActiveMQTextMessage;
 
 import javax.jms.JMSException;
-import java.awt.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
 
 public class AuctionManagerController implements Initializable, IMessageHandler {
 
     @FXML
-    public TextArea textareaCurrentLot;
+    private TextField textfieldCurrentLot;
     @FXML
-    public ListView listviewBiddings;
+    private ListView listviewBiddings;
     @FXML
-    public ListView listviewPendingLots;
+    private ListView listviewPendingLots;
+    @FXML
+    private ListView<String> listviewHistory;
 
     //region Channels
     // Bidding: For placing a bid on the current lot
     private Gateway biddingGateway = new Gateway("Bidding");
 
-    // LotPublisher: For publishing new lots
-    private Gateway lotPublisherGateway = new Gateway("LotPublisher");
+    // LotSeller: For publishing new lots
+    private Gateway lotSellerGateway = new Gateway("LotSeller");
 
     // LotSubmitter: For submitting a lot for the AuctionManager to consume
     private Gateway lotSubmitterGateway = new Gateway("LotSubmitter");
+
+    // Winner: For posting lot winners (Item)
+    private Gateway winnerGateway = new Gateway("Winner");
 
     // Listener
     private MessageListener listener = new MessageListener(this);
@@ -46,36 +50,60 @@ public class AuctionManagerController implements Initializable, IMessageHandler 
     private Item currentItem;
     private ObservableList<Item> pendingLots = FXCollections.observableArrayList();
     private ObservableList<Bid> bids = FXCollections.observableArrayList();
+    private ObservableList<String> history = FXCollections.observableArrayList();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        this.listviewPendingLots.setItems(pendingLots);
         this.listviewBiddings.setItems(bids);
+        this.listviewPendingLots.setItems(pendingLots);
+        this.listviewHistory.setItems(history);
 
         try {
             this.biddingGateway.getConsumer().setMessageListener(this.listener);
-            this.lotPublisherGateway.getConsumer().setMessageListener(this.listener);
+            //this.lotSellerGateway.getConsumer().setMessageListener(this.listener);
             this.lotSubmitterGateway.getConsumer().setMessageListener(this.listener);
+            this.winnerGateway.getConsumer().setMessageListener(this.listener);
         } catch (JMSException e) {
             e.printStackTrace();
         }
     }
 
-    //region Message handling
+    //region Message hangling
     @Override
-    public void onMessageReceived(ActiveMQObjectMessage message, String destination) {
+    public void onTextMessageReceived(ActiveMQTextMessage message) {
+        System.out.println("Called method onTextMessageReceived");
+
         try {
+            System.out.println("Received text message: " + message.getText());
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onObjectMessageReceived(ActiveMQObjectMessage message) {
+        System.out.println("Called method onObjectMessageReceived");
+
+        try {
+            String destination = message.getDestination().getPhysicalName();
+            System.out.println("Received object message: " + message + ", from channel " + destination);
+
             switch (destination) {
                 case "Bidding":
                     Bid bid = (Bid) message.getObject();
                     this.onBidMade(bid);
                     break;
-                //case "LotPublisher":
-                //    // No actions are needed from the Bidder when a new lot is submitted
-                //    break;
+//                case "LotSeller":
+//                    Item lotBeingSold = (Item) message.getObject();
+//                    this.onLotBeingSold(lotBeingSold);
+//                    break;
                 case "LotSubmitter":
-                    Item lot = (Item) message.getObject();
-                    this.onLotSubmitted(lot);
+                    Item lotSubmitted = (Item) message.getObject();
+                    this.onLotSubmitted(lotSubmitted);
+                    break;
+                case "Winner":
+                    User user = (User) message.getObject();
+                    this.onWinnerAnnounced(user);
                     break;
                 default:
                     System.out.println("no match on destionation: " + destination);
@@ -86,31 +114,72 @@ public class AuctionManagerController implements Initializable, IMessageHandler 
     }
 
     private void onBidMade(Bid bid) {
+        System.out.println("Called method onBidMade");
+
         System.out.println("A new bid has been made: " + bid);
-        this.bids.add(bid);
-        if(this.currentItem.winningBid == null){
-            // If no bid has been placed so far
+
+        if (this.currentItem.winningBid == null ||
+                bid.buyingPrice > this.currentItem.winningBid.buyingPrice) {
+
+            this.bids.add(bid);
+
             this.currentItem.winningBid = bid;
-        } else {
-            // If a bid has been placed, compare prices
-            if(bid.buyingPrice > this.currentItem.winningBid.buyingPrice){
-                this.currentItem.winningBid = bid;
-                if(this.currentItem.autoSellPrice <= bid.buyingPrice){
-                    // Item has been sold!
-                }
+
+            if (this.currentItem.autoSellPrice <= bid.buyingPrice) {
+                // Item has been sold!
+                this.winnerGateway.sendObjectMessage(this.currentItem);
             }
+        } else {
+            // Bid placed lower than the highest bid
         }
     }
 
-    private void onLotSubmitted(Item item) {
-        System.out.println("A new item has been submitted: " + item.getName());
-        if(currentItem == null){
-            this.currentItem = item;
-            this.textareaCurrentLot.setText(item.toString());
-            this.lotPublisherGateway.sendMessage(item);
-        } else {
-            this.pendingLots.add(item);
+    private void onWinnerAnnounced(User user) {
+        System.out.println("Called method onWinnerAnnounced");
+
+        System.out.println("We winner of the lot was " + user.getName());
+
+        history.add("The winner of " + this.currentItem.getName() + " is " + this.currentItem.winningBid.buyer.getName() + " with a price of € " + this.currentItem.winningBid.buyingPrice);
+
+        this.reset();
+        this.publishNextLot();
+    }
+
+    private void reset() {
+        System.out.println("Called method reset");
+
+        this.currentItem = null;
+        this.textfieldCurrentLot.setText("");
+        this.bids.clear();
+    }
+
+    private void publishNextLot() {
+        System.out.println("Called method publishNextLot");
+
+        if (this.currentItem == null && this.pendingLots.size() > 0) {
+            Item nextLot = this.pendingLots.get(0);
+            this.pendingLots.remove(0);
+            this.currentItem = nextLot;
+            this.textfieldCurrentLot.setText(this.currentItem.toString());
+            this.lotSellerGateway.sendObjectMessage(this.currentItem);
         }
+    }
+
+
+//    private void onLotBeingSold(Item item) {
+//        System.out.println("Called method onLotBeingSold");
+//
+//        this.pendingLots.add(item);
+//        this.publishNextLot();
+//    }
+
+
+    private void onLotSubmitted(Item item) {
+        System.out.println("Called method onLotSubmitted");
+        System.out.println("A new item has been submitted: " + item.getName());
+
+        this.pendingLots.add(item);
+        this.publishNextLot();
     }
     //endregion
 }
