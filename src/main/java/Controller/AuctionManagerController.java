@@ -1,6 +1,6 @@
 package Controller;
 
-import gateway.Gateway;
+import gateway.TopicGateway;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -21,6 +21,8 @@ import java.util.ResourceBundle;
 
 public class AuctionManagerController implements Initializable, IMessageHandler {
 
+    public String username;
+
     @FXML
     private TextField textfieldCurrentLot;
     @FXML
@@ -32,16 +34,16 @@ public class AuctionManagerController implements Initializable, IMessageHandler 
 
     //region Channels
     // Bidding: For placing a bid on the current lot
-    private Gateway biddingGateway = new Gateway("Bidding");
+    private TopicGateway biddingGateway = new TopicGateway(username, "Bidding");
 
     // LotSeller: For publishing new lots
-    private Gateway lotSellerGateway = new Gateway("LotSeller");
+    private TopicGateway lotSellerGateway = new TopicGateway(username, "LotSeller");
 
     // LotSubmitter: For submitting a lot for the AuctionManager to consume
-    private Gateway lotSubmitterGateway = new Gateway("LotSubmitter");
+    private TopicGateway lotSubmitterGateway = new TopicGateway(username, "LotSubmitter");
 
     // Winner: For posting lot winners (Item)
-    private Gateway winnerGateway = new Gateway("Winner");
+    private TopicGateway winnerGateway = new TopicGateway(username, "Winner");
 
     // Listener
     private MessageListener listener = new MessageListener(this);

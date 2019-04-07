@@ -1,6 +1,7 @@
 package Application;
 
-import gateway.Gateway;
+import gateway.QueueGateway;
+import gateway.TopicGateway;
 import listeners.IMessageHandler;
 import listeners.MessageListener;
 import models.User;
@@ -10,18 +11,18 @@ import org.apache.activemq.command.ActiveMQTextMessage;
 import javax.jms.JMSException;
 import java.io.Serializable;
 
-public class TestMain implements IMessageHandler {
+public class QueueTestMain implements IMessageHandler {
 
 
-    private Gateway testGateway = new Gateway("test");
+    private QueueGateway testGateway = new QueueGateway("testQueue", "test");
 
     private MessageListener listener = new MessageListener(this);
 
     public static void main(String[] args) {
-        new TestMain();
+        new QueueTestMain();
     }
 
-    public TestMain() {
+    public QueueTestMain() {
         try {
             this.testGateway.getConsumer().setMessageListener(this.listener);
         } catch (JMSException e) {
@@ -45,13 +46,13 @@ public class TestMain implements IMessageHandler {
 
     @Override
     public void onTextMessageReceived(ActiveMQTextMessage message) {
-        System.out.println("Received a message");
+        System.out.println("Received a textmessage");
         System.out.println(message);
     }
 
     @Override
     public void onObjectMessageReceived(ActiveMQObjectMessage message) {
-        System.out.println("Received an object");
+        System.out.println("Received an objectmessage");
         System.out.println(message);
     }
 }
