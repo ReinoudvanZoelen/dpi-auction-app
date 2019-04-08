@@ -104,8 +104,8 @@ public class AuctionManagerController implements Initializable, IMessageHandler 
                     this.onLotSubmitted(lotSubmitted);
                     break;
                 case "Winner":
-                    User user = (User) message.getObject();
-                    this.onWinnerAnnounced(user);
+                    Item wonItem = (Item) message.getObject();
+                    this.onWinnerAnnounced(wonItem);
                     break;
                 default:
                     System.out.println("no match on destionation: " + destination);
@@ -128,7 +128,6 @@ public class AuctionManagerController implements Initializable, IMessageHandler 
             this.currentItem.winningBid = bid;
 
             if (this.currentItem.autoSellPrice <= bid.buyingPrice) {
-                // Item has been sold!
                 this.winnerGateway.sendObjectMessage(this.currentItem);
             }
         } else {
@@ -136,12 +135,10 @@ public class AuctionManagerController implements Initializable, IMessageHandler 
         }
     }
 
-    private void onWinnerAnnounced(User user) {
+    private void onWinnerAnnounced(Item item) {
         System.out.println("Called method onWinnerAnnounced");
 
-        System.out.println("We winner of the lot was " + user.getName());
-
-        history.add("The winner of " + this.currentItem.getName() + " is " + this.currentItem.winningBid.buyer.getName() + " with a price of € " + this.currentItem.winningBid.buyingPrice);
+        history.add("The winner of " + item.getName() + " is " + item.winningBid.buyer.getName() + " with a price of € " + item.winningBid.buyingPrice);
 
         this.reset();
         this.publishNextLot();

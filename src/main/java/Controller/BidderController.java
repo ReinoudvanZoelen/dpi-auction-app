@@ -135,10 +135,13 @@ public class BidderController implements Initializable, IMessageHandler {
         }
     }
 
-    private void onWinnerAnnounced(Item wonItem) {
-        System.out.println("Called method onWinnenAnnounced");
-        if (wonItem.winningBid.buyer.getName() == this.username) {
-            this.history.add("You won the auction! You now own " + this.currentItem.getName() + " and € " + this.currentItem.winningBid.buyingPrice + " will be deducted from your account.");
+    private void onWinnerAnnounced(Item item) {
+        System.out.println("Called method onWinnerAnnounced");
+        System.out.println("Equals? " + item.winningBid.buyer.getName().equals(this.username));
+
+        System.out.println("Called method onWinnerAnnounced");
+        if (item.winningBid.buyer.getName().equals(this.username)) {
+            this.history.add("You won the auction! You now own " + item.getName() + " and € " + item.winningBid.buyingPrice + " will be deducted from your account.");
         } else {
             this.history.add("Someone else won this auction. A new auction will start soon.");
         }

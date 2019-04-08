@@ -16,7 +16,7 @@ public class Item implements Serializable {
 
     @Override
     public String toString() {
-        return "Item "+ name + ", sold by " + seller.name;
+        return "Item "+ name + ", sold by " + seller.toString();
     }
 
     public String getName() {
